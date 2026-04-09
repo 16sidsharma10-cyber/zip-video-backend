@@ -177,10 +177,11 @@ async function renderVideo(zipPath, outputDir, jobId) {
       args.push('-i', seg.audioPath);
     }
 
-    const vf = `scale=2560:4551:force_original_aspect_ratio=increase,crop=2560:4551,zoompan=z='zoom+0.0015':d=${frames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}[vout]`;
+    // Lightweight filter for cloud server (no 2K upscale to save RAM)
+    const vf = `scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='zoom+0.001':d=${frames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920:fps=${fps}[vout]`;
     const af = `aformat=sample_rates=44100:channel_layouts=stereo[aout]`;
     args.push('-filter_complex', `[0:v]${vf}; [1:a]${af}`);
-    args.push('-map', '[vout]', '-map', '[aout]', '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-t', String(seg.duration), clipPath);
+    args.push('-map', '[vout]', '-map', '[aout]', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-shortest', '-t', String(seg.duration), clipPath);
     await runFFmpeg(args);
   }
 
