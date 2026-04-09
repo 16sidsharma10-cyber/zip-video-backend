@@ -229,13 +229,11 @@ async function renderVideo(zipPath, outputDir, jobId) {
   fs.writeFileSync(assFile, assContent, 'utf8');
   const assEsc = assFile.replace(/\\/g, '/').replace(/:/g, '\\:');
 
-  // Pass 3: Final
-  update(85, 'Final encoding...');
+  // Pass 3: Final (Subtitles only - stable)
   const finalPath = path.join(outputDir, 'output.mp4');
-  const pbFilter = `color=c=cyan@0.8:s=1080x6:d=${finalDuration.toFixed(3)}[pbar]; [vsub][pbar]overlay=x='-1080+1080*t/${finalDuration.toFixed(3)}':y=1914[vfinished]`;
-  let mainFilter = `[0:v]ass='${assEsc}'[vsub]; ${pbFilter}`;
+  const mainFilter = `[0:v]ass='${assEsc}'[vfinal]`;
 
-  await runFFmpeg(['-y', '-i', concatPath, '-filter_complex', mainFilter, '-map', '[vfinished]', '-map', '0:a', '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', finalPath]);
+  await runFFmpeg(['-y', '-i', concatPath, '-filter_complex', mainFilter, '-map', '[vfinal]', '-map', '0:a', '-c:v', 'libx264', '-preset', 'fast', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', finalPath]);
 
   // Cleanup
   fs.rmSync(tempDir, { recursive: true, force: true });
